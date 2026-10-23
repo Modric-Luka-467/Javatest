@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.*;
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
@@ -43,5 +46,50 @@ public class Main {
         System.out.println("无人机["+vehicle.vehicleId+"],计费启动...");
         LogisticsOrder order = new LogisticsOrder.Builder("0D-999").sender("Alice").receiver("Bob").fragile(true).insureMoney(1000.0).build();
         System.out.println(order);
+
+        PaymentService service = new PaymentService();
+        try{
+            service.doPay(-100,"T001");
+        }catch (SystemMaintenanceException e){
+            System.out.println("捕获包装后的异常:"+e.getMessage());
+        }
+        service.doPay(12000,"T002");
+        try {
+            service.doPay(500,"T003");
+        }catch (SystemMaintenanceException e){
+            System.out.println("捕获网络异常:"+e.getMessage());
+        }
+        service.doPay(2000,"T004");
+
+        OrderAnalyzer analyzer = new OrderAnalyzer();
+        analyzer.add(new Order("0001","Alice",150.0,Arrays.asList("电子","数码")));
+        analyzer.add(new Order("0002","Bob",-50.0,Arrays.asList("服装")));
+        analyzer.add(new Order("0003","Alice",200.0,Arrays.asList("图书","电子")));
+        analyzer.add(new Order("0004","Charlie",200.0,Arrays.asList("生鲜")));
+        analyzer.add(new Order("0005","Bob",300.0,Arrays.asList("服装","户外")));
+        System.out.println("====原始订单====");
+        for (Order o : analyzer.getOrderList()){
+            System.out.println(o);
+        }
+        analyzer.removeInvalidOrders();
+        System.out.println("\n====删除金额<=订单后====");
+        for (Order o : analyzer.getOrderList()){
+            System.out.println(o);
+        }
+        Set<String> tags = analyzer.getAllUniqueTags();
+        System.out.println("\n====全部唯一标签===="+tags);
+        Map<String,Double> spendMap = analyzer.getCustomerSpendMap();
+        System.out.println("\n====客户消费总额===="+spendMap);
+        List<Order> sortedByName = analyzer.sortOrdersByCustomerName();
+        System.out.println("\n====按客户姓名升序====");
+        for (Order o : sortedByName){
+            System.out.println(o);
+        }
+        List<Order> defaultSort = new ArrayList<>(analyzer.getOrderList());
+        Collections.sort(defaultSort);
+        System.out.println("\n====默认排序(金额降序)====");
+        for (Order o : defaultSort){
+            System.out.println(o);
+        }
     }
 }
